@@ -12,7 +12,6 @@
 //////////////////////////////////////////////////////////////////////
 // print error message.
 symset phi, declbegsys, statbegsys, facbegsys, relset;
-
 void error(int n) {
 	int i;
 
@@ -24,7 +23,7 @@ void error(int n) {
 	err++;
 } // error
 
-//////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 void getch(void) {
 
 	// 读取的字符保存在ch中
@@ -38,22 +37,23 @@ void getch(void) {
 		while ((!feof(infile)) // added & modified by alex 01-02-09
 			&& ((ch = getc(infile)) != '\n')) {
 
-			if (ch=='/') {//newly
+			if (ch == '/') {//newly
 				line[++ll] = ch;
 				if ((!feof(infile))
 					&& ((ch = getc(infile)) != '\n')) {
-					if (ch=='/') {
-						line[ll]=' ';
+					if (ch == '/') {
+						line[ll] = ' ';
 						while ((!feof(infile))
 							&& ((ch = getc(infile)) != '\n')) {
-						}						
-					}else if(ch=='*') {
+						}
+					}
+					else if (ch == '*') {
 						line[ll] = ' ';
 						while (!feof(infile)) {
 							ch = getc(infile);
-							if (ch=='*'
-							&&(!feof(infile))
-							&& ((ch = getc(infile)) == '/')) {
+							if (ch == '*'
+								&& (!feof(infile))
+								&& ((ch = getc(infile)) == '/')) {
 								break;
 							}
 						}
@@ -79,15 +79,16 @@ void getch(void) {
 	ch = line[++cc];
 } // getch
 
-//////////////////////////////////////////////////////////////////////
-// gets a symbol from input stream.
-// 状态被限定在全局变量中
-// sym指示了当前symbol的类型，如果是标识符，其值显示指定
+  //////////////////////////////////////////////////////////////////////
+  // gets a symbol from input stream.
+  // gets a symbol from input stream.
+  // 状态被限定在全局变量中
+  // sym指示了当前symbol的类型，如果是标识符，其值显示指定
 void getsym(void) {
 	int i, k;
 	char a[MAXIDLEN + 1];
 
-	while (ch == ' ' || ch=='\t')
+	while (ch == ' ')
 		getch();
 
 	if (isalpha(ch)) { // symbol is a reserved word or an identifier.
@@ -96,8 +97,7 @@ void getsym(void) {
 			if (k < MAXIDLEN)
 				a[k++] = ch;
 			getch();
-		}
-		while (isalpha(ch) || isdigit(ch));
+		} while (isalpha(ch) || isdigit(ch));
 		a[k] = 0;
 		strcpy(id, a);
 		word[0] = id;//word[0]被用来保存现在的id，占位
@@ -106,7 +106,7 @@ void getsym(void) {
 		if (++i)
 			sym = wsym[i]; // symbol is a reserved word
 		else
-			sym = SYM_IDENTIFIER; // symbol is an identifier
+			sym = SYM_IDENTIFIER;   // symbol is an identifier
 	}
 	else if (isdigit(ch)) { // symbol is a number.
 		k = num = 0;
@@ -115,10 +115,9 @@ void getsym(void) {
 			num = num * 10 + ch - '0';
 			k++;
 			getch();
-		}
-		while (isdigit(ch));
+		} while (isdigit(ch));
 		if (k > MAXNUMLEN)
-			error(25); // The number is too great.
+			error(25);     // The number is too great.
 	}
 	else if (ch == ':') {
 		getch();
@@ -127,52 +126,39 @@ void getsym(void) {
 			getch();
 		}
 		else {
-			sym = SYM_NULL; // illegal?
+			sym = SYM_NULL;       // illegal?
 		}
 	}
 	else if (ch == '>') {
 		getch();
 		if (ch == '=') {
-			sym = SYM_GEQ; // >=
+			sym = SYM_GEQ;     // >=
 			getch();
 		}
 		else {
-			sym = SYM_GTR; // >
+			sym = SYM_GTR;     // >
 		}
 	}
 	else if (ch == '<') {
 		getch();
 		if (ch == '=') {
-			sym = SYM_LEQ; // <=
+			sym = SYM_LEQ;     // <=
 			getch();
 		}
 		else if (ch == '>') {
-			sym = SYM_NEQ; // <>
+			sym = SYM_NEQ;     // <>
 			getch();
 		}
 		else {
-			sym = SYM_LES; // <
+			sym = SYM_LES;     // <
 		}
 	}
-	//newly
-//	else if (ch == '/') {
-//		getch();
-//		if (ch == '/') {
-//			cc = ll;
-//			
-//		}
-//
-//		else {
-//			printf("Fatal Error: Unknown character.\n");
-//			exit(1);
-//		}
-//	}
 	else { // other tokens
 		i = NSYM;
 		csym[0] = ch;
 		while (csym[i--] != ch);
 		if (++i) {
-			sym = ssym[i]; //运算符
+			sym = ssym[i];
 			getch();
 		}
 		else {
@@ -182,8 +168,8 @@ void getsym(void) {
 	}
 } // getsym
 
-//////////////////////////////////////////////////////////////////////
-// generates (assembles) an instruction.
+  //////////////////////////////////////////////////////////////////////
+  // generates (assembles) an instruction.
 void gen(int x, int y, int z) {
 	if (cx > CXMAX) {
 		printf("Fatal Error: Program too long.\n");
@@ -194,8 +180,8 @@ void gen(int x, int y, int z) {
 	code[cx++].a = z;
 } // gen
 
-//////////////////////////////////////////////////////////////////////
-// tests if error occurs and skips all symbols that do not belongs to s1 or s2.
+  //////////////////////////////////////////////////////////////////////
+  // tests if error occurs and skips all symbols that do not belongs to s1 or s2.
 void test(symset s1, symset s2, int n) {
 	symset s;
 
@@ -208,11 +194,11 @@ void test(symset s1, symset s2, int n) {
 	}
 } // test
 
-//////////////////////////////////////////////////////////////////////
-int dx; // data allocation index
+  //////////////////////////////////////////////////////////////////////
+int dx;  // data allocation index
 
-// enter object(constant, variable or procedre) into table.
-void enter(int kind,int len=1) {
+		 // enter object(constant, variable or procedre) into table.
+void enter(int kind,int dim_len=1) {
 	mask* mk;
 
 	tx++;
@@ -229,7 +215,8 @@ void enter(int kind,int len=1) {
 	case ID_VARIABLE:
 		mk = (mask*)&table[tx];
 		mk->level = level;
-		mk->address = dx+len;
+		mk->address = dx+dim_len;
+		dx += dim_len;
 		break;
 	case ID_PROCEDURE:
 		mk = (mask*)&table[tx];
@@ -238,9 +225,9 @@ void enter(int kind,int len=1) {
 	} // switch
 } // enter
 
-//////////////////////////////////////////////////////////////////////
-// locates identifier in symbol table.
-// 结果以下标的形式给出,如果返回0,代表符号不存在
+  //////////////////////////////////////////////////////////////////////
+  // locates identifier in symbol table.
+  // 结果以下标的形式给出,如果返回0,代表符号不存在
 int position(char* id) {
 	int i;
 	strcpy(table[0].name, id);
@@ -249,7 +236,7 @@ int position(char* id) {
 	return i;
 } // position
 
-//////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 void constdeclaration() {
 	if (sym == SYM_IDENTIFIER) {
 		getsym();
@@ -269,11 +256,11 @@ void constdeclaration() {
 			error(3); // There must be an '=' to follow the identifier.
 		}
 	}
-	else error(4);
+	else	error(4);
 	// There must be an identifier to follow 'const', 'var', or 'procedure'.
 } // constdeclaration
 
-
+//数组声明
 void dimDeclaration(void) {
 	if (sym == SYM_LSQUARE) {
 		getsym();
@@ -299,15 +286,13 @@ void dimDeclaration(void) {
 	}
 	else {
 		base_dim = 1;
-	}
-}
-//////////////////////////////////////////////////////////////////////
+		｝
+｝
+  //////////////////////////////////////////////////////////////////////
 void vardeclaration(void) {
 	//todo:添加数组声明
 	if (sym == SYM_IDENTIFIER) {
-		getsym();
-//		dimDeclaration();
-		enter(ID_VARIABLE,1);
+		enter(ID_VARIABLE);
 		getsym();
 	}
 	else {
@@ -315,9 +300,7 @@ void vardeclaration(void) {
 	}
 } // vardeclaration
 
-
-
-//////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 void listcode(int from, int to) {
 	int i;
 
@@ -328,7 +311,7 @@ void listcode(int from, int to) {
 	printf("\n");
 } // listcode
 
-//////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 void factor(symset fsys) {
 	void expression(symset fsys);
 	int i;
@@ -382,7 +365,7 @@ void factor(symset fsys) {
 	} // while
 } // factor
 
-//////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 void term(symset fsys) {
 	int mulop;
 	symset set;
@@ -403,7 +386,7 @@ void term(symset fsys) {
 	destroyset(set);
 } // term
 
-//////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 void expression(symset fsys) {
 	int addop;
 	symset set;
@@ -436,18 +419,15 @@ void expression(symset fsys) {
 	destroyset(set);
 } // expression
 
-//////////////////////////////////////////////////////////////////////
-
-//关系表达式
+  //////////////////////////////////////////////////////////////////////
 void condition(symset fsys) {
-	//todo:拓展,增加与或非,短路计算
 	int relop;
 	symset set;
 
 	if (sym == SYM_ODD) {
 		getsym();
 		expression(fsys);
-		gen(OPR, 0, OPR_ODD);
+		gen(OPR, 0, 6);
 	}
 	else {
 		set = uniteset(relset, fsys);
@@ -484,15 +464,12 @@ void condition(symset fsys) {
 	} // else
 } // condition
 
-//////////////////////////////////////////////////////////////////////
-//语句.
-//一个语句为以下一种:赋值语句,条件判断,循环或者begin end包含的语句块
+  //////////////////////////////////////////////////////////////////////
 void statement(symset fsys) {
 	int i, cx1, cx2;
 	symset set1, set;
 
 	if (sym == SYM_IDENTIFIER) { // variable assignment
-		//赋值语句的右值应该是一个可计算值的表达式
 		mask* mk;
 		if (!(i = position(id))) {
 			error(11); // Undeclared identifier.
@@ -534,8 +511,6 @@ void statement(symset fsys) {
 			getsym();
 		}
 	}
-
-
 	else if (sym == SYM_IF) { // if statement
 		getsym();
 		set1 = createset(SYM_THEN, SYM_DO, SYM_NULL);
@@ -552,16 +527,6 @@ void statement(symset fsys) {
 		cx1 = cx;
 		gen(JPC, 0, 0);
 		statement(fsys);
-		
-
-		if (sym == SYM_ELSE) {
-			getsym();
-			code[cx1].a = cx + 1;
-			cx1 = cx;
-			gen(JMP, 0, 0);
-			statement(fsys);
-		}
-
 		code[cx1].a = cx;
 	}
 	else if (sym == SYM_BEGIN) { // block
@@ -610,12 +575,7 @@ void statement(symset fsys) {
 	test(fsys, phi, 19);
 } // statement
 
-//////////////////////////////////////////////////////////////////////
-
-//block处理程序体，以const,var,procedure和语句(statement)作为开始符号
-//其中const,procedure的声明是递归的,而procedures-> procedure ident ; 程序体 ; 
-//故procedure中还会调用block,这些定义会循环到不出现这些符号
-//之后进行语句的处理,程序最后结束
+  //////////////////////////////////////////////////////////////////////
 void block(symset fsys) {
 	int cx0; // initial code index
 	mask* mk;
@@ -646,8 +606,7 @@ void block(symset fsys) {
 				else {
 					error(5); // Missing ',' or ';'.
 				}
-			}
-			while (sym == SYM_IDENTIFIER);
+			} while (sym == SYM_IDENTIFIER);
 		} // if
 
 		if (sym == SYM_VAR) { // variable declarations
@@ -664,8 +623,7 @@ void block(symset fsys) {
 				else {
 					error(5); // Missing ',' or ';'.
 				}
-			}
-			while (sym == SYM_IDENTIFIER);
+			} while (sym == SYM_IDENTIFIER);
 			//			block = dx;
 		} // if
 
@@ -714,8 +672,7 @@ void block(symset fsys) {
 		test(set, declbegsys, 7);
 		destroyset(set1);
 		destroyset(set);
-	}
-	while (inset(sym, declbegsys));
+	} while (inset(sym, declbegsys));
 
 	code[mk->address].a = cx;
 	mk->address = cx;
@@ -731,7 +688,7 @@ void block(symset fsys) {
 	listcode(cx0, cx);
 } // block
 
-//////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 int base(int stack[], int currentLevel, int levelDiff) {
 	int b = currentLevel;
 
@@ -740,13 +697,13 @@ int base(int stack[], int currentLevel, int levelDiff) {
 	return b;
 } // base
 
-//////////////////////////////////////////////////////////////////////
-// interprets and executes codes.
+  //////////////////////////////////////////////////////////////////////
+  // interprets and executes codes.
 void interpret() {
-	int pc; // program counter
+	int pc;        // program counter
 	int stack[STACKSIZE];
-	int top; // top of stack
-	int b; // program, base, and top-stack register
+	int top;       // top of stack
+	int b;         // program, base, and top-stack register
 	instruction i; // instruction register
 
 	printf("Begin executing PL/0 program.\n");
@@ -847,13 +804,12 @@ void interpret() {
 			top--;
 			break;
 		} // switch
-	}
-	while (pc);
+	} while (pc);
 
 	printf("End executing PL/0 program.\n");
 } // interpret
 
-//////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 void main() {
 	FILE* hbin;
 	char s[80];
@@ -864,7 +820,6 @@ void main() {
 	scanf("%s", s);
 	if ((infile = fopen(s, "r")) == NULL) {
 		printf("File %s can't be opened.\n", s);
-
 		exit(1);
 	}
 
@@ -885,7 +840,6 @@ void main() {
 	set1 = createset(SYM_PERIOD, SYM_NULL);
 	set2 = uniteset(declbegsys, statbegsys);
 	set = uniteset(set1, set2);
-
 	block(set);
 	destroyset(set1);
 	destroyset(set2);
@@ -909,9 +863,7 @@ void main() {
 	else
 		printf("There are %d error(s) in PL/0 program.\n", err);
 	listcode(0, cx);
-	system("pause");
-
 } // main
 
-//////////////////////////////////////////////////////////////////////
-// eof pl0.c
+  //////////////////////////////////////////////////////////////////////
+  // eof pl0.c
