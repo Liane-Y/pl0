@@ -136,6 +136,7 @@ int  err;
 int  cx;         // index of current instruction to be generated.
 int  level = 0;
 int  tx = 0;	// 指示现在变量表中的下一个元素
+int base_dim = 1;//指示数组扩展时当前单位量
 
 char line[80];
 

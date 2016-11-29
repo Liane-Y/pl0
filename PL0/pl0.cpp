@@ -212,7 +212,7 @@ void test(symset s1, symset s2, int n) {
 int dx; // data allocation index
 
 // enter object(constant, variable or procedre) into table.
-void enter(int kind) {
+void enter(int kind,int len=1) {
 	mask* mk;
 
 	tx++;
@@ -229,7 +229,7 @@ void enter(int kind) {
 	case ID_VARIABLE:
 		mk = (mask*)&table[tx];
 		mk->level = level;
-		mk->address = dx++;
+		mk->address = dx+len;
 		break;
 	case ID_PROCEDURE:
 		mk = (mask*)&table[tx];
@@ -273,12 +273,41 @@ void constdeclaration() {
 	// There must be an identifier to follow 'const', 'var', or 'procedure'.
 } // constdeclaration
 
+
+void dimDeclaration(void) {
+	if (sym == SYM_LSQUARE) {
+		getsym();
+		int ks;
+		if (sym == SYM_NUMBER) {
+			ks = num;
+			getsym();
+			if (sym == SYM_RSQUARE) {
+				getsym();
+				dimDeclaration();
+				base_dim *= ks;
+			}
+			else {
+				error(1);
+			}
+		}
+		else if (sym == SYM_COMMA || sym == SYM_SEMICOLON) {
+			base_dim = 1;
+		}
+		else {
+			error(1);
+		}
+	}
+	else {
+		base_dim = 1;
+	}
+}
 //////////////////////////////////////////////////////////////////////
 void vardeclaration(void) {
 	//todo:添加数组声明
 	if (sym == SYM_IDENTIFIER) {
 		getsym();
-		enter(ID_VARIABLE);
+//		dimDeclaration();
+		enter(ID_VARIABLE,1);
 		getsym();
 	}
 	else {
@@ -287,17 +316,7 @@ void vardeclaration(void) {
 } // vardeclaration
 
 
-void dimDeclaration(void) {
-	if (sym==SYM_LSQUARE) {
-		getsym();
-		if (sym == SYM_NUMBER) {
-			
-		}
-		else {
-			error(1);
-		}
-	}
-}
+
 //////////////////////////////////////////////////////////////////////
 void listcode(int from, int to) {
 	int i;
