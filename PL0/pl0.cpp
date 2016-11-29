@@ -108,6 +108,14 @@ void getsym(void) {
 		else
 			sym = SYM_IDENTIFIER; // symbol is an identifier
 	}
+	else if (ch=='[') {
+		sym = SYM_LSQUARE;
+		getch();
+	}
+	else if(ch ==']') {
+		sym = SYM_RSQUARE;
+		getch();
+	}
 	else if (isdigit(ch)) { // symbol is a number.
 		k = num = 0;
 		sym = SYM_NUMBER;
@@ -289,15 +297,12 @@ void dimDeclaration(void) {
 				error(1);
 			}
 		}
-		else if (sym == SYM_COMMA || sym == SYM_SEMICOLON) {
+	}
+	else if (sym == SYM_COMMA || sym == SYM_SEMICOLON) {
 			base_dim = 1;
-		}
-		else {
-			error(1);
-		}
 	}
 	else {
-		base_dim = 1;
+			error(1);
 	}
 }
 //////////////////////////////////////////////////////////////////////
@@ -305,9 +310,9 @@ void vardeclaration(void) {
 	//todo:添加数组声明
 	if (sym == SYM_IDENTIFIER) {
 		getsym();
-		//		dimDeclaration();
+		dimDeclaration();
 		enter(ID_VARIABLE, 1);
-		getsym();
+//		getsym();
 	}
 	else {
 		error(4); // There must be an identifier to follow 'const', 'var', or 'procedure'.
