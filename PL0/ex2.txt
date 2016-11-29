@@ -1,0 +1,9 @@
+var x,w;
+begin
+	x:=2;
+	w:=3;
+	if w<x then
+		w:=w+1;
+	else
+		x:=x+1;
+end.

@@ -74,6 +74,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -110,6 +111,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="pl0.cpp" />
+    <ClCompile Include="set.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pl0.h" />
+    <ClInclude Include="set.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="D:\文档\pl0\example.txt" />
+    <Text Include="D:\文档\pl0\example2.txt" />
+    <Text Include="D:\文档\pl0\example3.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
