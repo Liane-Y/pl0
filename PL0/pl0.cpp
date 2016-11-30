@@ -340,13 +340,20 @@ void listcode(int from, int to) {
   //////////////////////////////////////////////////////////////////////
 void factor(symset fsys) {
 	void expression(symset fsys);
+	void expr_condition(symset fsys);
 	int i;
 	symset set;
+	bool flag = false;
 
 	test(facbegsys, fsys, 24); // The symbol can not be as the beginning of an expression.
 
 	while (inset(sym, facbegsys)) {
-		if (sym == SYM_IDENTIFIER) {
+		if (sym==SYM_NOT) {
+			flag = true;
+			getsym();
+			continue;
+		}
+		else if (sym == SYM_IDENTIFIER) {
 			if ((i = position(id)) == 0) {
 				error(11); // Undeclared identifier.
 			}
@@ -365,6 +372,10 @@ void factor(symset fsys) {
 					break;
 				} // switch
 			}
+			if (flag) {
+				gen(OPR, 0, OPR_NOT);
+				flag = false;
+			}
 			getsym();
 		}
 		else if (sym == SYM_NUMBER) {
@@ -373,12 +384,17 @@ void factor(symset fsys) {
 				num = 0;
 			}
 			gen(LIT, 0, num);
+			if (flag) {
+				gen(OPR, 0, OPR_NOT);
+				flag = false;
+			}
 			getsym();
 		}
 		else if (sym == SYM_LPAREN) {
 			getsym();
 			set = uniteset(createset(SYM_RPAREN, SYM_NULL), fsys);
-			expression(set);
+//			expression(set);
+			expr_condition(set);
 			destroyset(set);
 			if (sym == SYM_RPAREN) {
 				getsym();
@@ -387,7 +403,7 @@ void factor(symset fsys) {
 				error(22); // Missing ')'.
 			}
 		}
-		test(fsys, createset(SYM_LPAREN, SYM_NULL), 23);
+		test(fsys, createset(SYM_LPAREN,SYM_NOT, SYM_NULL), 23);
 	} // while
 } // factor
 
@@ -448,14 +464,43 @@ void expression(symset fsys) {
 
   //////////////////////////////////////////////////////////////////////
 void expr_condition(symset fsys) {
-	symset ex = uniteset(createset(SYM_AND, SYM_OR), fsys);
-	expression(ex);
-	if (sym == SYM_AND) {
-		std::cout << "ini nini"<<std::endl;
+//	symset ex = uniteset(createset(SYM_AND, SYM_OR), fsys);
+//	expression(ex);
+//	if (sym == SYM_AND) {
+//		std::cout << "ini nini"<<std::endl;
+//		getsym();
+//		expression(ex);
+//		gen(OPR, 0, OPR_AND);
+//	}
+
+
+	int andop;
+	symset set;
+
+	set = uniteset(fsys, createset(SYM_AND,SYM_OR, SYM_NULL));
+	if (sym == SYM_AND || sym == SYM_OR) {
+		andop = sym;
 		getsym();
-		expression(ex);
-		gen(OPR, 0, OPR_AND);
+		expression(set);
 	}
+	else {
+		expression(set);
+	}
+
+	while (sym == SYM_AND || sym == SYM_OR) {
+		andop = sym;
+		getsym();
+		expression(set);
+		if (andop == SYM_AND) {
+			gen(OPR, 0, OPR_AND);
+		}
+		else {
+			gen(OPR, 0, OPR_OR);
+		}
+	} // while
+
+
+	destroyset(set);
 }
   //关系表达式
 void condition(symset fsys) {
@@ -855,7 +900,7 @@ void interpret() {
 				stack[top] = stack[top] || stack[top + 1];
 				break;
 			case OPR_NOT:
-				stack[top] = stack[top]==0?1:0;
+				stack[top] = (stack[top]==0?1:0);
 				break;
 
 
@@ -904,12 +949,12 @@ void interpret() {
   //////////////////////////////////////////////////////////////////////
 void main() {
 	FILE* hbin;
-	char s[80];
+	char s[80]="example.txt";
 	int i;
 	symset set, set1, set2;
 
-	printf("Please input source file name: "); // get file name to be compiled
-	scanf("%s", s);
+//	printf("Please input source file name: "); // get file name to be compiled
+//	scanf("%s", s);
 	if ((infile = fopen(s, "r")) == NULL) {
 		printf("File %s can't be opened.\n", s);
 
@@ -922,7 +967,7 @@ void main() {
 	// create begin symbol sets
 	declbegsys = createset(SYM_CONST, SYM_VAR, SYM_PROCEDURE, SYM_NULL);
 	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_WHILE, SYM_NULL);
-	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN, SYM_NULL);
+	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN,SYM_NOT, SYM_NULL);
 
 	err = cc = cx = ll = 0; // initialize global variables
 	ch = ' ';
