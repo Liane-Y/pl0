@@ -69,7 +69,9 @@ enum opcode {
 			//过程调用
 			CAL,
 				//在数据栈中分配存储空间
-				INT, JMP, JPC
+				INT, 
+					JMP, 
+					JPC
 };
 
 enum oprcode {

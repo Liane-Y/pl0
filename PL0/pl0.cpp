@@ -541,6 +541,7 @@ void statement(symset fsys) {
 
 
 	else if (sym == SYM_IF) { // if statement
+		
 		getsym();
 		set1 = createset(SYM_THEN, SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
@@ -556,17 +557,20 @@ void statement(symset fsys) {
 		cx1 = cx;
 		gen(JPC, 0, 0);
 		statement(fsys);
-
+		int cx_jmp = cx;		
+		gen(JMP, 0, 0);
+		if (sym==SYM_SEMICOLON) {
+			getsym();
+		}
+		code[cx1].a = cx;
 
 		if (sym == SYM_ELSE) {
 			getsym();
-			code[cx1].a = cx + 1;
-			cx1 = cx;
-			gen(JMP, 0, 0);
 			statement(fsys);
+			code[cx_jmp].a = cx;
 		}
 
-		code[cx1].a = cx;
+		
 	}
 	else if (sym == SYM_BEGIN) { // block
 		getsym();
@@ -612,6 +616,8 @@ void statement(symset fsys) {
 		code[cx2].a = cx;
 	}
 	test(fsys, phi, 19);
+
+	//todo:for—≠ª∑ µœ÷
 } // statement
 
   //////////////////////////////////////////////////////////////////////
