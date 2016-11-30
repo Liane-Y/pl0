@@ -442,11 +442,21 @@ void expression(symset fsys) {
 		}
 	} // while
 
+	
 	destroyset(set);
 } // expression
 
   //////////////////////////////////////////////////////////////////////
-
+void expr_condition(symset fsys) {
+	symset ex = uniteset(createset(SYM_AND, SYM_OR), fsys);
+	expression(ex);
+	if (sym == SYM_AND) {
+		std::cout << "ini nini"<<std::endl;
+		getsym();
+		expression(ex);
+		gen(OPR, 0, OPR_AND);
+	}
+}
   //关系表达式
 void condition(symset fsys) {
 	//todo:拓展,增加与或非,短路计算
@@ -454,6 +464,7 @@ void condition(symset fsys) {
 	symset set;
 
 	if (sym == SYM_ODD) {
+		
 		getsym();
 		expression(fsys);
 		gen(OPR, 0, OPR_ODD);
@@ -559,7 +570,8 @@ void statement(symset fsys) {
 		getsym();
 		set1 = createset(SYM_THEN, SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
-		condition(set);
+//		condition(set);
+		expr_condition(set);
 		destroyset(set1);
 		destroyset(set);
 		if (sym == SYM_THEN) {
