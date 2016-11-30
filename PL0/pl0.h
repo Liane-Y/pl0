@@ -50,7 +50,10 @@ enum symtype {
 	SYM_COMMENT,
 	SYM_ELSE,
 	SYM_LSQUARE,
-	SYM_RSQUARE
+	SYM_RSQUARE,
+	SYM_AND,
+	SYM_OR,
+	SYM_NOT
 };
 
 enum idtype {
@@ -78,7 +81,7 @@ enum oprcode {
 	OPR_RET, OPR_NEG, OPR_ADD, OPR_MIN,
 	OPR_MUL, OPR_DIV, OPR_ODD, OPR_EQU,
 	OPR_NEQ, OPR_LES, OPR_LEQ, OPR_GTR,
-	OPR_GEQ
+	OPR_GEQ, OPR_AND, OPR_OR,  OPR_NOT
 };
 
 
@@ -160,12 +163,12 @@ int wsym[NRW + 1] =
 int ssym[NSYM + 1] =
 {
 	SYM_NULL, SYM_PLUS, SYM_MINUS, SYM_TIMES, SYM_SLASH,
-	SYM_LPAREN, SYM_RPAREN, SYM_EQU, SYM_COMMA, SYM_PERIOD, SYM_SEMICOLON
+	SYM_LPAREN, SYM_RPAREN, SYM_EQU, SYM_COMMA, SYM_PERIOD, SYM_SEMICOLON//SYM_AND,SYM_OR,SYM_NOT
 };
 //ÔËËã·û
 char csym[NSYM + 1] =
 {
-	' ', '+', '-', '*', '/', '(', ')', '=', ',', '.', ';'
+	' ', '+', '-', '*', '/', '(', ')', '=', ',', '.', ';'//'&','|','!'
 };
 
 #define MAXINS   8

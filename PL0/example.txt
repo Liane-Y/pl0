@@ -1,8 +1,8 @@
 var i[1],j;
 begin
-  i := -1;
+  i := 1;
   
-  if i<0 then
+  if 5+1 then
    i:=i+1;
   else
    i:=i-1;

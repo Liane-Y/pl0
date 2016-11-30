@@ -161,19 +161,24 @@ void getsym(void) {
 			sym = SYM_LES; // <
 		}
 	}
-	//newly
-	//	else if (ch == '/') {
-	//		getch();
-	//		if (ch == '/') {
-	//			cc = ll;
-	//			
-	//		}
-	//
-	//		else {
-	//			printf("Fatal Error: Unknown character.\n");
-	//			exit(1);
-	//		}
-	//	}
+	else if(ch=='&') {
+		getch();
+		if (ch=='&') {
+			sym = SYM_AND;
+			getch();
+		}
+	}
+	else if (ch == '|') {
+		getch();
+		if (ch == '|') {
+			sym = SYM_OR;
+			getch();
+		}
+	}
+	else if (ch == '!') {
+		sym = SYM_NOT;
+		getch();
+	}
 	else { // other tokens
 		i = NSYM;
 		csym[0] = ch;
@@ -482,6 +487,15 @@ void condition(symset fsys) {
 				break;
 			case SYM_LEQ:
 				gen(OPR, 0, OPR_LEQ);
+				break;
+			case SYM_AND:
+				gen(OPR, 0, OPR_AND);
+				break;
+			case SYM_OR:
+				gen(OPR, 0, OPR_OR);
+				break;
+			case SYM_NOT:
+				gen(OPR, 0, OPR_NOT);
 				break;
 			} // switch
 		} // else
@@ -810,6 +824,7 @@ void interpret() {
 			case OPR_NEQ:
 				top--;
 				stack[top] = stack[top] != stack[top + 1];
+				break;
 			case OPR_LES:
 				top--;
 				stack[top] = stack[top] < stack[top + 1];
@@ -817,6 +832,21 @@ void interpret() {
 			case OPR_GEQ:
 				top--;
 				stack[top] = stack[top] >= stack[top + 1];
+				break;
+			//newly
+			case OPR_AND:
+				top--;
+				stack[top] = stack[top] && stack[top + 1];
+				break;
+			case OPR_OR:
+				top--;
+				stack[top] = stack[top] || stack[top + 1];
+				break;
+			case OPR_NOT:
+				stack[top] = stack[top]==0?1:0;
+				break;
+
+
 			case OPR_GTR:
 				top--;
 				stack[top] = stack[top] > stack[top + 1];
@@ -875,7 +905,7 @@ void main() {
 	}
 
 	phi = createset(SYM_NULL);
-	relset = createset(SYM_EQU, SYM_NEQ, SYM_LES, SYM_LEQ, SYM_GTR, SYM_GEQ, SYM_NULL);
+	relset = createset(SYM_EQU, SYM_NEQ, SYM_LES, SYM_LEQ, SYM_GTR, SYM_GEQ, SYM_AND,SYM_NOT,SYM_OR,SYM_NULL);
 
 	// create begin symbol sets
 	declbegsys = createset(SYM_CONST, SYM_VAR, SYM_PROCEDURE, SYM_NULL);
