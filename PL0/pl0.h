@@ -2,7 +2,7 @@
 #define PL_H
 #include <stdio.h>
 
-#define NRW        14    // number of reserved words
+#define NRW        15    // number of reserved words
 #define TXMAX      500    // length of identifier table
 #define MAXNUMLEN  14     // maximum number of digits in numbers
 #define NSYM       10     // maximum number of symbols in array ssym and csym
@@ -53,7 +53,8 @@ enum symtype {
 	SYM_RSQUARE,
 	SYM_AND,
 	SYM_OR,
-	SYM_NOT
+	SYM_NOT,
+	SYM_FOR
 };
 
 enum idtype {
@@ -153,13 +154,13 @@ char* word[NRW + 1] =
 {
 	"", /* place holder */
 	"begin", "call", "const", "do", "end","if",
-	"odd", "procedure", "then", "var", "while","else","[","]"
+	"odd", "procedure", "then", "var", "while","else","[","]","for"
 };
 //与预留字对应的宏变量
 int wsym[NRW + 1] =
 {
 	SYM_NULL, SYM_BEGIN, SYM_CALL, SYM_CONST, SYM_DO, SYM_END,
-	SYM_IF, SYM_ODD, SYM_PROCEDURE, SYM_THEN, SYM_VAR, SYM_WHILE,SYM_ELSE,SYM_LSQUARE,SYM_RSQUARE
+	SYM_IF, SYM_ODD, SYM_PROCEDURE, SYM_THEN, SYM_VAR, SYM_WHILE,SYM_ELSE,SYM_LSQUARE,SYM_RSQUARE,SYM_FOR
 };
 //与运算符对应的宏
 int ssym[NSYM + 1] =

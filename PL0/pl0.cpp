@@ -437,6 +437,8 @@ void expression(symset fsys) {
 	int addop;
 	symset set;
 
+
+
 	set = uniteset(fsys, createset(SYM_PLUS, SYM_MINUS, SYM_NULL));
 	if (sym == SYM_PLUS || sym == SYM_MINUS) {
 		addop = sym;
@@ -466,85 +468,13 @@ void expression(symset fsys) {
 	destroyset(set);
 } // expression
 
-  //////////////////////////////////////////////////////////////////////
-void expr_condition(symset fsys) {
-	int andop;
-	symset set;
-	int cx_jpc,cx_jmp;
-	set = uniteset(fsys, createset(SYM_AND, SYM_OR, SYM_NULL));
-	if (sym == SYM_AND || sym == SYM_OR) {
-		andop = sym;
-		getsym();
-		if (andop == SYM_AND) {
-			cx_jpc = cx;
-			gen(JPC, 0, 0);
-			gen(LIT, 0, 1);
-			expression(set);
-			gen(OPR, 0, OPR_AND);
-			cx_jmp = cx;
-			gen(JMP, 0, 0);
-			code[cx_jpc].a = cx;
-			gen(LIT, 0, 0);
-			code[cx_jmp].a = cx;
-		}
-		else {
-			cx_jpc = cx;
-			gen(JC, 0, 0);
-			gen(LIT, 0, 0);
-			expression(set);
-			gen(OPR, 0, OPR_OR);
-			cx_jmp = cx;
-			gen(JMP, 0, 0);
-			code[cx_jpc].a = cx;
-			gen(LIT, 0, 1);
-			code[cx_jmp].a = cx;
-		}
-//		expression(set);
-	}
-	else {
-		expression(set);
-	}
 
-
-	while (sym == SYM_AND || sym == SYM_OR) {
-		andop = sym;
-		getsym();
-		if (andop == SYM_AND) {
-			cx_jpc = cx;
-			gen(JPC, 0, 0);
-			gen(LIT, 0, 1);
-			expression(set);
-			gen(OPR, 0, OPR_AND);
-//			gen(LIT, 0, 0);
-			cx_jmp = cx;
-			gen(JMP, 0, 0);
-			code[cx_jpc].a = cx;
-			gen(LIT, 0, 0);
-			code[cx_jmp].a = cx;
-		}
-		else {
-			cx_jpc = cx;
-			gen(JC, 0, 0);
-			gen(LIT, 0, 0);
-			expression(set);
-			gen(OPR, 0, OPR_OR);
-			cx_jmp = cx;
-			gen(JMP, 0, 0);
-			code[cx_jpc].a = cx;
-			gen(LIT, 0, 1);
-			code[cx_jmp].a = cx;
-		}
-	} // while
-
-	destroyset(set);
-}
-//关系表达式
+  //关系表达式
 void condition(symset fsys) {
 	int relop;
 	symset set;
 
 	if (sym == SYM_ODD) {
-
 		getsym();
 		expression(fsys);
 		gen(OPR, 0, OPR_ODD);
@@ -553,10 +483,11 @@ void condition(symset fsys) {
 		set = uniteset(relset, fsys);
 		expression(set);
 		destroyset(set);
-		if (!inset(sym, relset)) {
-			error(20);
-		}
-		else {
+//		if (!inset(sym, relset)) {
+//
+//			error(20);
+//		}
+		if(inset(sym,relset)) {
 			relop = sym;
 			getsym();
 			expression(fsys);
@@ -579,19 +510,87 @@ void condition(symset fsys) {
 			case SYM_LEQ:
 				gen(OPR, 0, OPR_LEQ);
 				break;
-			case SYM_AND:
-				gen(OPR, 0, OPR_AND);
-				break;
-			case SYM_OR:
-				gen(OPR, 0, OPR_OR);
-				break;
-			case SYM_NOT:
-				gen(OPR, 0, OPR_NOT);
-				break;
 			} // switch
 		} // else
 	} // else
 } // condition
+  //////////////////////////////////////////////////////////////////////
+void expr_condition(symset fsys) {
+	int andop;
+	symset set;
+	int cx_jpc,cx_jmp;
+	set = uniteset(fsys, createset(SYM_AND, SYM_OR, SYM_NULL));
+	if (sym == SYM_AND || sym == SYM_OR) {
+		andop = sym;
+		getsym();
+		if (andop == SYM_AND) {
+			cx_jpc = cx;
+			gen(JPC, 0, 0);
+			gen(LIT, 0, 1);
+//			expression(set);
+			condition(set);
+			gen(OPR, 0, OPR_AND);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 0);
+			code[cx_jmp].a = cx;
+		}
+		else {
+			cx_jpc = cx;
+			gen(JC, 0, 0);
+			gen(LIT, 0, 0);
+			//			expression(set);
+			condition(set);
+			gen(OPR, 0, OPR_OR);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 1);
+			code[cx_jmp].a = cx;
+		}
+//		expression(set);
+	}
+	else {
+		//			expression(set);
+		condition(set);
+	}
+
+
+	while (sym == SYM_AND || sym == SYM_OR) {
+		andop = sym;
+		getsym();
+		if (andop == SYM_AND) {
+			cx_jpc = cx;
+			gen(JPC, 0, 0);
+			gen(LIT, 0, 1);	
+			//			expression(set);
+			condition(set);
+			gen(OPR, 0, OPR_AND);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 0);
+			code[cx_jmp].a = cx;
+		}
+		else {
+			cx_jpc = cx;
+			gen(JC, 0, 0);
+			gen(LIT, 0, 0);
+			//			expression(set);
+			condition(set);
+			gen(OPR, 0, OPR_OR);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 1);
+			code[cx_jmp].a = cx;
+		}
+	} // while
+
+	destroyset(set);
+}
+
 
   //////////////////////////////////////////////////////////////////////
   //语句.
@@ -599,6 +598,8 @@ void condition(symset fsys) {
 void statement(symset fsys) {
 	int i, cx1, cx2;
 	symset set1, set;
+	int cx_for1,cx_for2,cx_for3;
+	int cx_jmp1, cx_jmp2;
 
 	if (sym == SYM_IDENTIFIER) { // variable assignment
 								 //赋值语句的右值应该是一个可计算值的表达式
@@ -702,6 +703,7 @@ void statement(symset fsys) {
 		}
 	}
 	else if (sym == SYM_WHILE) { // while statement
+		
 		cx1 = cx;//CX1保存了while条件句位置
 		getsym();
 		set1 = createset(SYM_DO, SYM_NULL);
@@ -720,6 +722,36 @@ void statement(symset fsys) {
 		statement(fsys);
 		gen(JMP, 0, cx1);
 		code[cx2].a = cx;
+	}
+	
+	else if (sym==SYM_FOR) {
+		getsym();
+		symset set_go = createset(SYM_SEMICOLON, SYM_NULL);
+		set = uniteset(set_go, fsys);
+		statement(set);
+		if (sym==SYM_SEMICOLON) {
+			getsym();
+		}
+		cx_for2 = cx;
+	    condition(set);
+		
+		
+		gen(JPC, 0, 0);
+		cx_jmp1 = cx;
+		gen(JMP, 0, 0);
+		if (sym==SYM_SEMICOLON) {
+			getsym();
+		}
+		set = uniteset(createset(SYM_DO, SYM_NULL), fsys);
+		cx_jmp2 = cx;
+		statement(set);
+		code[cx_jmp1].a = cx;
+		if (sym==SYM_DO) {
+			getsym();
+		}
+		statement(fsys);
+		gen(JMP, 0, cx_jmp2);
+		code[cx_for2].a = cx;
 	}
 	test(fsys, phi, 19);
 
@@ -1007,11 +1039,11 @@ void main() {
 	}
 
 	phi = createset(SYM_NULL);
-	relset = createset(SYM_EQU, SYM_NEQ, SYM_LES, SYM_LEQ, SYM_GTR, SYM_GEQ, SYM_AND, SYM_NOT, SYM_OR, SYM_NULL);
+	relset = createset(SYM_EQU, SYM_NEQ, SYM_LES, SYM_LEQ, SYM_GTR, SYM_GEQ, SYM_NULL);
 
 	// create begin symbol sets
 	declbegsys = createset(SYM_CONST, SYM_VAR, SYM_PROCEDURE, SYM_NULL);
-	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_WHILE, SYM_NULL);
+	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_WHILE,SYM_FOR, SYM_NULL);
 	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN, SYM_NOT, SYM_NULL);
 
 	err = cc = cx = ll = 0; // initialize global variables
