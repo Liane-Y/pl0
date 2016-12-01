@@ -74,7 +74,9 @@ enum opcode {
 				//在数据栈中分配存储空间
 				INT, 
 					JMP, 
-					JPC
+					JPC,
+						JC,
+							POP
 };
 
 enum oprcode {
@@ -171,10 +173,10 @@ char csym[NSYM + 1] =
 	' ', '+', '-', '*', '/', '(', ')', '=', ',', '.', ';'//'&','|','!'
 };
 
-#define MAXINS   8
+#define MAXINS   10
 char* mnemonic[MAXINS] =
 {
-	"LIT", "OPR", "LOD", "STO", "CAL", "INT", "JMP", "JPC"
+	"LIT", "OPR", "LOD", "STO", "CAL", "INT", "JMP", "JPC","JC","POP"
 };
 
 //变量表,包含名字,类型和值

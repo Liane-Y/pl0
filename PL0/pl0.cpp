@@ -108,11 +108,11 @@ void getsym(void) {
 		else
 			sym = SYM_IDENTIFIER; // symbol is an identifier
 	}
-	else if (ch=='[') {
+	else if (ch == '[') {
 		sym = SYM_LSQUARE;
 		getch();
 	}
-	else if(ch ==']') {
+	else if (ch == ']') {
 		sym = SYM_RSQUARE;
 		getch();
 	}
@@ -161,9 +161,9 @@ void getsym(void) {
 			sym = SYM_LES; // <
 		}
 	}
-	else if(ch=='&') {
+	else if (ch == '&') {
 		getch();
-		if (ch=='&') {
+		if (ch == '&') {
 			sym = SYM_AND;
 			getch();
 		}
@@ -304,10 +304,10 @@ void dimDeclaration(void) {
 		}
 	}
 	else if (sym == SYM_COMMA || sym == SYM_SEMICOLON) {
-			base_dim = 1;
+		base_dim = 1;
 	}
 	else {
-			error(1);
+		error(1);
 	}
 }
 //////////////////////////////////////////////////////////////////////
@@ -317,7 +317,7 @@ void vardeclaration(void) {
 		getsym();
 		dimDeclaration();
 		enter(ID_VARIABLE, 1);
-//		getsym();
+		//		getsym();
 	}
 	else {
 		error(4); // There must be an identifier to follow 'const', 'var', or 'procedure'.
@@ -348,7 +348,7 @@ void factor(symset fsys) {
 	test(facbegsys, fsys, 24); // The symbol can not be as the beginning of an expression.
 
 	while (inset(sym, facbegsys)) {
-		if (sym==SYM_NOT) {
+		if (sym == SYM_NOT) {
 			flag = true;
 			getsym();
 			continue;
@@ -393,7 +393,7 @@ void factor(symset fsys) {
 		else if (sym == SYM_LPAREN) {
 			getsym();
 			set = uniteset(createset(SYM_RPAREN, SYM_NULL), fsys);
-//			expression(set);
+			//			expression(set);
 			expr_condition(set);
 			destroyset(set);
 			if (sym == SYM_RPAREN) {
@@ -403,7 +403,7 @@ void factor(symset fsys) {
 				error(22); // Missing ')'.
 			}
 		}
-		test(fsys, createset(SYM_LPAREN,SYM_NOT, SYM_NULL), 23);
+		test(fsys, createset(SYM_LPAREN, SYM_NOT, SYM_NULL), 23);
 	} // while
 } // factor
 
@@ -458,58 +458,90 @@ void expression(symset fsys) {
 		}
 	} // while
 
-	
+
 	destroyset(set);
 } // expression
 
   //////////////////////////////////////////////////////////////////////
 void expr_condition(symset fsys) {
-//	symset ex = uniteset(createset(SYM_AND, SYM_OR), fsys);
-//	expression(ex);
-//	if (sym == SYM_AND) {
-//		std::cout << "ini nini"<<std::endl;
-//		getsym();
-//		expression(ex);
-//		gen(OPR, 0, OPR_AND);
-//	}
-
-
 	int andop;
 	symset set;
-
-	set = uniteset(fsys, createset(SYM_AND,SYM_OR, SYM_NULL));
+	int cx_jpc,cx_jmp;
+	set = uniteset(fsys, createset(SYM_AND, SYM_OR, SYM_NULL));
 	if (sym == SYM_AND || sym == SYM_OR) {
 		andop = sym;
 		getsym();
-		expression(set);
+		if (andop == SYM_AND) {
+			cx_jpc = cx;
+			gen(JPC, 0, 0);
+			gen(LIT, 0, 1);
+			expression(set);
+			gen(OPR, 0, OPR_AND);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 0);
+			code[cx_jmp].a = cx;
+		}
+		else {
+			cx_jpc = cx;
+			gen(JC, 0, 0);
+			gen(LIT, 0, 0);
+			expression(set);
+			gen(OPR, 0, OPR_OR);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 1);
+			code[cx_jmp].a = cx;
+		}
+//		expression(set);
 	}
 	else {
 		expression(set);
 	}
 
+
 	while (sym == SYM_AND || sym == SYM_OR) {
 		andop = sym;
 		getsym();
-		expression(set);
 		if (andop == SYM_AND) {
+			cx_jpc = cx;
+			gen(JPC, 0, 0);
+			gen(LIT, 0, 1);
+			expression(set);
 			gen(OPR, 0, OPR_AND);
+//			gen(LIT, 0, 0);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 0);
+			code[cx_jmp].a = cx;
 		}
 		else {
+			cx_jpc = cx;
+			gen(JC, 0, 0);
+			gen(LIT, 0, 0);
+			expression(set);
 			gen(OPR, 0, OPR_OR);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 1);
+			code[cx_jmp].a = cx;
 		}
 	} // while
 
-
 	destroyset(set);
 }
-  //关系表达式
+//关系表达式
 void condition(symset fsys) {
 	//todo:拓展,增加与或非,短路计算
 	int relop;
 	symset set;
 
 	if (sym == SYM_ODD) {
-		
+
 		getsym();
 		expression(fsys);
 		gen(OPR, 0, OPR_ODD);
@@ -611,11 +643,11 @@ void statement(symset fsys) {
 
 
 	else if (sym == SYM_IF) { // if statement
-		
+
 		getsym();
 		set1 = createset(SYM_THEN, SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
-//		condition(set);
+		//		condition(set);
 		expr_condition(set);
 		destroyset(set1);
 		destroyset(set);
@@ -628,9 +660,9 @@ void statement(symset fsys) {
 		cx1 = cx;
 		gen(JPC, 0, 0);
 		statement(fsys);
-		int cx_jmp = cx;		
+		int cx_jmp = cx;
 		gen(JMP, 0, 0);
-		if (sym==SYM_SEMICOLON) {
+		if (sym == SYM_SEMICOLON) {
 			getsym();
 		}
 		code[cx1].a = cx;
@@ -641,7 +673,7 @@ void statement(symset fsys) {
 			code[cx_jmp].a = cx;
 		}
 
-		
+
 	}
 	else if (sym == SYM_BEGIN) { // block
 		getsym();
@@ -667,7 +699,7 @@ void statement(symset fsys) {
 		}
 	}
 	else if (sym == SYM_WHILE) { // while statement
-		cx1 = cx;
+		cx1 = cx;//CX1保存了while条件句位置
 		getsym();
 		set1 = createset(SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
@@ -675,7 +707,7 @@ void statement(symset fsys) {
 		destroyset(set1);
 		destroyset(set);
 		cx2 = cx;
-		gen(JPC, 0, 0);
+		gen(JPC, 0, 0);//CX2保存了JPC地址
 		if (sym == SYM_DO) {
 			getsym();
 		}
@@ -821,6 +853,7 @@ int base(int stack[], int currentLevel, int levelDiff) {
   //////////////////////////////////////////////////////////////////////
   // interprets and executes codes.
 void interpret() {
+
 	int pc; // program counter
 	int stack[STACKSIZE];
 	int top; // top of stack
@@ -890,7 +923,7 @@ void interpret() {
 				top--;
 				stack[top] = stack[top] >= stack[top + 1];
 				break;
-			//newly
+				//newly
 			case OPR_AND:
 				top--;
 				stack[top] = stack[top] && stack[top + 1];
@@ -900,7 +933,7 @@ void interpret() {
 				stack[top] = stack[top] || stack[top + 1];
 				break;
 			case OPR_NOT:
-				stack[top] = (stack[top]==0?1:0);
+				stack[top] = (stack[top] == 0 ? 1 : 0);
 				break;
 
 
@@ -940,6 +973,15 @@ void interpret() {
 				pc = i.a;
 			top--;
 			break;
+
+		case JC:
+			if (stack[top] != 0)
+				pc = i.a;
+			top--;
+			break;
+		case POP:
+			top--;
+			break;
 		} // switch
 	} while (pc);
 
@@ -949,12 +991,12 @@ void interpret() {
   //////////////////////////////////////////////////////////////////////
 void main() {
 	FILE* hbin;
-	char s[80]="example.txt";
+	char s[80] = "example.txt";
 	int i;
 	symset set, set1, set2;
 
-//	printf("Please input source file name: "); // get file name to be compiled
-//	scanf("%s", s);
+	//	printf("Please input source file name: "); // get file name to be compiled
+	//	scanf("%s", s);
 	if ((infile = fopen(s, "r")) == NULL) {
 		printf("File %s can't be opened.\n", s);
 
@@ -962,12 +1004,12 @@ void main() {
 	}
 
 	phi = createset(SYM_NULL);
-	relset = createset(SYM_EQU, SYM_NEQ, SYM_LES, SYM_LEQ, SYM_GTR, SYM_GEQ, SYM_AND,SYM_NOT,SYM_OR,SYM_NULL);
+	relset = createset(SYM_EQU, SYM_NEQ, SYM_LES, SYM_LEQ, SYM_GTR, SYM_GEQ, SYM_AND, SYM_NOT, SYM_OR, SYM_NULL);
 
 	// create begin symbol sets
 	declbegsys = createset(SYM_CONST, SYM_VAR, SYM_PROCEDURE, SYM_NULL);
 	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_WHILE, SYM_NULL);
-	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN,SYM_NOT, SYM_NULL);
+	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN, SYM_NOT, SYM_NULL);
 
 	err = cc = cx = ll = 0; // initialize global variables
 	ch = ' ';
