@@ -242,6 +242,7 @@ void enter(int kind, int len = 1) {
 		mk = (mask*)&table[tx];
 		mk->level = level;
 		mk->address = dx + len;
+		dx += len;
 		break;
 	case ID_PROCEDURE:
 		mk = (mask*)&table[tx];
@@ -393,7 +394,6 @@ void factor(symset fsys) {
 		else if (sym == SYM_LPAREN) {
 			getsym();
 			set = uniteset(createset(SYM_RPAREN, SYM_NULL), fsys);
-			//			expression(set);
 			expr_condition(set);
 			destroyset(set);
 			if (sym == SYM_RPAREN) {
@@ -483,10 +483,6 @@ void condition(symset fsys) {
 		set = uniteset(relset, fsys);
 		expression(set);
 		destroyset(set);
-//		if (!inset(sym, relset)) {
-//
-//			error(20);
-//		}
 		if(inset(sym,relset)) {
 			relop = sym;
 			getsym();
@@ -708,7 +704,7 @@ void statement(symset fsys) {
 		getsym();
 		set1 = createset(SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
-		condition(set);
+		expr_condition(set);
 		destroyset(set1);
 		destroyset(set);
 		cx2 = cx;
@@ -733,9 +729,8 @@ void statement(symset fsys) {
 			getsym();
 		}
 		cx_for2 = cx;
-	    condition(set);
-		
-		
+	    expr_condition(set);
+		cx_for3 = cx;
 		gen(JPC, 0, 0);
 		cx_jmp1 = cx;
 		gen(JMP, 0, 0);
@@ -745,13 +740,14 @@ void statement(symset fsys) {
 		set = uniteset(createset(SYM_DO, SYM_NULL), fsys);
 		cx_jmp2 = cx;
 		statement(set);
+		gen(JMP, 0, cx_for2);
 		code[cx_jmp1].a = cx;
 		if (sym==SYM_DO) {
 			getsym();
 		}
 		statement(fsys);
 		gen(JMP, 0, cx_jmp2);
-		code[cx_for2].a = cx;
+		code[cx_for3].a = cx;
 	}
 	test(fsys, phi, 19);
 
