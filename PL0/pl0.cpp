@@ -398,6 +398,10 @@ void factor(symset fsys) {
 			destroyset(set);
 			if (sym == SYM_RPAREN) {
 				getsym();
+				if (flag) {
+					gen(OPR, 0, OPR_NOT);
+					flag = false;
+				}
 			}
 			else {
 				error(22); // Missing ')'.
@@ -536,7 +540,6 @@ void expr_condition(symset fsys) {
 }
 //关系表达式
 void condition(symset fsys) {
-	//todo:拓展,增加与或非,短路计算
 	int relop;
 	symset set;
 
