@@ -9,9 +9,20 @@
 #include "set.h"
 #include <iostream>
 
+//for debug
+int debug_1 = 0;
+
+
 //////////////////////////////////////////////////////////////////////
 // print error message.
 symset phi, declbegsys, statbegsys, facbegsys, relset;
+//for break
+int cx_for_break = 0;
+//for exit
+int cx_for_exit = 0;
+//input and output
+void printvar();
+void inputvar();
 
 void error(int n) {
 	int i;
@@ -27,6 +38,7 @@ void error(int n) {
   //////////////////////////////////////////////////////////////////////
 void getch(void) {
 
+	// 读取的字符保存在ch中
 	if (cc == ll) {
 		if (feof(infile)) {
 			printf("\nPROGRAM INCOMPLETE\n");
@@ -81,7 +93,8 @@ void getch(void) {
 
   //////////////////////////////////////////////////////////////////////
   // gets a symbol from input stream.
- 
+  // 状态被限定在全局变量中
+  // sym指示了当前symbol的类型，如果是标识符，其值显示指定
 void getsym(void) {
 	int i, k;
 	char a[MAXIDLEN + 1];
@@ -98,7 +111,7 @@ void getsym(void) {
 		} while (isalpha(ch) || isdigit(ch));
 		a[k] = 0;
 		strcpy(id, a);
-		word[0] = id;
+		word[0] = id;//word[0]被用来保存现在的id，占位
 		i = NRW;
 		while (strcmp(id, word[i--]));
 		if (++i)
@@ -182,7 +195,7 @@ void getsym(void) {
 		csym[0] = ch;
 		while (csym[i--] != ch);
 		if (++i) {
-			sym = ssym[i]; //�����
+			sym = ssym[i]; //运算符
 			getch();
 		}
 		else {
@@ -240,6 +253,7 @@ void enter(int kind, int len = 1) {
 		mk = (mask*)&table[tx];
 		mk->level = level;
 		mk->address = dx + len;
+		dx += len;
 		break;
 	case ID_PROCEDURE:
 		mk = (mask*)&table[tx];
@@ -250,7 +264,7 @@ void enter(int kind, int len = 1) {
 
   //////////////////////////////////////////////////////////////////////
   // locates identifier in symbol table.
-  // ������±����ʽ����,�������0,������Ų�����
+  // 结果以下标的形式给出,如果返回0,代表符号不存在
 int position(char* id) {
 	int i;
 	strcpy(table[0].name, id);
@@ -310,6 +324,7 @@ void dimDeclaration(void) {
 }
 //////////////////////////////////////////////////////////////////////
 void vardeclaration(void) {
+	//todo:添加数组声明
 	if (sym == SYM_IDENTIFIER) {
 		getsym();
 		dimDeclaration();
@@ -320,7 +335,6 @@ void vardeclaration(void) {
 		error(4); // There must be an identifier to follow 'const', 'var', or 'procedure'.
 	}
 } // vardeclaration
-
 
 
   //////////////////////////////////////////////////////////////////////
@@ -390,7 +404,6 @@ void factor(symset fsys) {
 		else if (sym == SYM_LPAREN) {
 			getsym();
 			set = uniteset(createset(SYM_RPAREN, SYM_NULL), fsys);
-			//			expression(set);
 			expr_condition(set);
 			destroyset(set);
 			if (sym == SYM_RPAREN) {
@@ -434,6 +447,8 @@ void expression(symset fsys) {
 	int addop;
 	symset set;
 
+
+
 	set = uniteset(fsys, createset(SYM_PLUS, SYM_MINUS, SYM_NULL));
 	if (sym == SYM_PLUS || sym == SYM_MINUS) {
 		addop = sym;
@@ -463,85 +478,13 @@ void expression(symset fsys) {
 	destroyset(set);
 } // expression
 
-  //////////////////////////////////////////////////////////////////////
-void expr_condition(symset fsys) {
-	int andop;
-	symset set;
-	int cx_jpc,cx_jmp;
-	set = uniteset(fsys, createset(SYM_AND, SYM_OR, SYM_NULL));
-	if (sym == SYM_AND || sym == SYM_OR) {
-		andop = sym;
-		getsym();
-		if (andop == SYM_AND) {
-			cx_jpc = cx;
-			gen(JPC, 0, 0);
-			gen(LIT, 0, 1);
-			expression(set);
-			gen(OPR, 0, OPR_AND);
-			cx_jmp = cx;
-			gen(JMP, 0, 0);
-			code[cx_jpc].a = cx;
-			gen(LIT, 0, 0);
-			code[cx_jmp].a = cx;
-		}
-		else {
-			cx_jpc = cx;
-			gen(JC, 0, 0);
-			gen(LIT, 0, 0);
-			expression(set);
-			gen(OPR, 0, OPR_OR);
-			cx_jmp = cx;
-			gen(JMP, 0, 0);
-			code[cx_jpc].a = cx;
-			gen(LIT, 0, 1);
-			code[cx_jmp].a = cx;
-		}
-//		expression(set);
-	}
-	else {
-		expression(set);
-	}
 
-
-	while (sym == SYM_AND || sym == SYM_OR) {
-		andop = sym;
-		getsym();
-		if (andop == SYM_AND) {
-			cx_jpc = cx;
-			gen(JPC, 0, 0);
-			gen(LIT, 0, 1);
-			expression(set);
-			gen(OPR, 0, OPR_AND);
-//			gen(LIT, 0, 0);
-			cx_jmp = cx;
-			gen(JMP, 0, 0);
-			code[cx_jpc].a = cx;
-			gen(LIT, 0, 0);
-			code[cx_jmp].a = cx;
-		}
-		else {
-			cx_jpc = cx;
-			gen(JC, 0, 0);
-			gen(LIT, 0, 0);
-			expression(set);
-			gen(OPR, 0, OPR_OR);
-			cx_jmp = cx;
-			gen(JMP, 0, 0);
-			code[cx_jpc].a = cx;
-			gen(LIT, 0, 1);
-			code[cx_jmp].a = cx;
-		}
-	} // while
-
-	destroyset(set);
-}
-//��ϵ���ʽ
+  //关系表达式
 void condition(symset fsys) {
 	int relop;
 	symset set;
 
 	if (sym == SYM_ODD) {
-
 		getsym();
 		expression(fsys);
 		gen(OPR, 0, OPR_ODD);
@@ -550,10 +493,7 @@ void condition(symset fsys) {
 		set = uniteset(relset, fsys);
 		expression(set);
 		destroyset(set);
-		if (!inset(sym, relset)) {
-			error(20);
-		}
-		else {
+		if (inset(sym, relset)) {
 			relop = sym;
 			getsym();
 			expression(fsys);
@@ -576,29 +516,117 @@ void condition(symset fsys) {
 			case SYM_LEQ:
 				gen(OPR, 0, OPR_LEQ);
 				break;
-			case SYM_AND:
-				gen(OPR, 0, OPR_AND);
-				break;
-			case SYM_OR:
-				gen(OPR, 0, OPR_OR);
-				break;
-			case SYM_NOT:
-				gen(OPR, 0, OPR_NOT);
-				break;
 			} // switch
 		} // else
 	} // else
 } // condition
-
   //////////////////////////////////////////////////////////////////////
-  //���.
-  //һ�����Ϊ����һ��:��ֵ���,�����ж�,ѭ������begin end����������
+void expr_condition(symset fsys) {
+	int andop;
+	symset set;
+	int cx_jpc, cx_jmp;
+	set = uniteset(fsys, createset(SYM_AND, SYM_OR, SYM_NULL));
+	if (sym == SYM_AND || sym == SYM_OR) {
+		andop = sym;
+		getsym();
+		if (andop == SYM_AND) {
+			cx_jpc = cx;
+			gen(JPC, 0, 0);
+			gen(LIT, 0, 1);
+			//			expression(set);
+			condition(set);
+			gen(OPR, 0, OPR_AND);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 0);
+			code[cx_jmp].a = cx;
+		}
+		else {
+			cx_jpc = cx;
+			gen(JC, 0, 0);
+			gen(LIT, 0, 0);
+			//			expression(set);
+			condition(set);
+			gen(OPR, 0, OPR_OR);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 1);
+			code[cx_jmp].a = cx;
+		}
+		//		expression(set);
+	}
+	else {
+		//			expression(set);
+		condition(set);
+	}
+
+
+	while (sym == SYM_AND || sym == SYM_OR) {
+		andop = sym;
+		getsym();
+		if (andop == SYM_AND) {
+			cx_jpc = cx;
+			gen(JPC, 0, 0);
+			gen(LIT, 0, 1);
+			//			expression(set);
+			condition(set);
+			gen(OPR, 0, OPR_AND);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 0);
+			code[cx_jmp].a = cx;
+		}
+		else {
+			cx_jpc = cx;
+			gen(JC, 0, 0);
+			gen(LIT, 0, 0);
+			//			expression(set);
+			condition(set);
+			gen(OPR, 0, OPR_OR);
+			cx_jmp = cx;
+			gen(JMP, 0, 0);
+			code[cx_jpc].a = cx;
+			gen(LIT, 0, 1);
+			code[cx_jmp].a = cx;
+		}
+	} // while
+
+	destroyset(set);
+}
+
+
+//////////////////////////////////////////////////////////////////////
+//语句.
+//一个语句为以下一种:赋值语句,条件判断,循环或者begin end包含的语句块
 void statement(symset fsys) {
 	int i, cx1, cx2;
 	symset set1, set;
+	//int cx_for1;
+	int cx_for2, cx_for3;
+	int cx_jmp1, cx_jmp2;
+
+
+	if (sym == SYM_EXIT) {
+		getsym();
+		cx_for_exit = cx;
+
+		gen(JMP, 0, 0);
+
+	}
+	if (sym == SYM_BREAK) {
+		getsym();
+		//cx_for_break=cx_for_break+2;
+		cx_for_break = cx;
+		gen(JMP, 0, 0);
+
+	}
+
 
 	if (sym == SYM_IDENTIFIER) { // variable assignment
-								 //��ֵ������ֵӦ����һ���ɼ���ֵ�ı��ʽ
+								 //赋值语句的右值应该是一个可计算值的表达式
 		mask* mk;
 		if (!(i = position(id))) {
 			error(11); // Undeclared identifier.
@@ -699,15 +727,16 @@ void statement(symset fsys) {
 		}
 	}
 	else if (sym == SYM_WHILE) { // while statement
-		cx1 = cx;//CX1������while������λ��
+
+		cx1 = cx;//CX1保存了while条件句位置
 		getsym();
 		set1 = createset(SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
-		condition(set);
+		expr_condition(set);
 		destroyset(set1);
 		destroyset(set);
 		cx2 = cx;
-		gen(JPC, 0, 0);//CX2������JPC��ַ
+		gen(JPC, 0, 0);//CX2保存了JPC地址
 		if (sym == SYM_DO) {
 			getsym();
 		}
@@ -716,15 +745,126 @@ void statement(symset fsys) {
 		}
 		statement(fsys);
 		gen(JMP, 0, cx1);
+		printf("%d2333333", cx);
+
 		code[cx2].a = cx;
+		//judge if break
+		if (code[cx_for_break].a == 0) {
+			code[cx_for_break].a = cx;
+		}
+		//judge if exit
+		if (code[cx_for_exit].a == 0) {
+			code[cx_for_exit].a = cx;
+		}
 	}
+
+	else if (sym == SYM_FOR) {
+		getsym();
+		symset set_go = createset(SYM_SEMICOLON, SYM_NULL);
+		set = uniteset(set_go, fsys);
+		statement(set);
+		if (sym == SYM_SEMICOLON) {
+			getsym();
+		}
+		cx_for2 = cx;
+		expr_condition(set);
+		cx_for3 = cx;
+		gen(JPC, 0, 0);
+		cx_jmp1 = cx;
+		gen(JMP, 0, 0);
+		if (sym == SYM_SEMICOLON) {
+			getsym();
+		}
+		set = uniteset(createset(SYM_DO, SYM_NULL), fsys);
+		cx_jmp2 = cx;
+		statement(set);
+		gen(JMP, 0, cx_for2);
+		code[cx_jmp1].a = cx;
+		if (sym == SYM_DO) {
+			getsym();
+		}
+		statement(fsys);
+		gen(JMP, 0, cx_jmp2);
+		//judge if break
+		if (code[cx_for_break].a == 0) {
+			code[cx_for_break].a = cx;
+		}
+		code[cx_for3].a = cx;
+
+		//judge if exit
+		if (code[cx_for_exit].a == 0) {
+			code[cx_for_exit].a = cx;
+		}
+
+	}
+	//printf
+	//PRINT A,B,E
+	/* if (sym == SYM_PRINTF) { // constant declarations
+	getsym();
+	do {
+	printvar();
+	while (sym == SYM_COMMA) {
+	getsym();
+	printvar();
+	}
+	if (sym == SYM_SEMICOLON) {
+	//getsym();
+
+	}
+	else {
+	error(5); // Missing ',' or ';'.
+	}
+	} while (sym == SYM_IDENTIFIER);
+	} */
+	if (sym == SYM_PRINTF) {
+
+		symset ttt = uniteset(fsys, createset(SYM_COMMA, SYM_SEMICOLON, SYM_NULL));
+
+		do {
+			getsym();
+			expr_condition(ttt);
+			gen(PT, 0, 0);
+		} while (sym == SYM_COMMA);
+
+		if (sym == SYM_SEMICOLON) {
+			getsym();
+		}
+	}
+	//INPUT A,B,C
+	if (sym == SYM_INPUT) { // constant declarations
+		getsym();
+		do {
+			inputvar();
+			while (sym == SYM_COMMA) {
+				getsym();
+				inputvar();
+			}
+			if (sym == SYM_SEMICOLON) {
+				//getsym();
+			}
+			else {
+				error(5); // Missing ',' or ';'.
+			}
+		} while (sym == SYM_IDENTIFIER);
+	}
+	//judge if exit
+	if (code[cx_for_exit].a == 0) {
+		code[cx_for_exit].a = cx;
+	}
+
+	//printf("cx:%d  \n",cx);
+
 	test(fsys, phi, 19);
 
+	//todo:for循环实现
 } // statement
 
   //////////////////////////////////////////////////////////////////////
 
-  
+  //block处理程序体，以const,var,procedure和语句(statement)作为开始符号
+  //其中const,procedure的声明是递归的,而procedures-> procedure ident ; 程序体 ; 
+  //故procedure中还会调用block,这些定义会循环到不出现这些符号
+  //之后进行语句的处理,程序最后结束
 void block(symset fsys) {
 	int cx0; // initial code index
 	mask* mk;
@@ -865,6 +1005,18 @@ void interpret() {
 	do {
 		i = code[pc++];
 		switch (i.f) {
+		case SCA:
+			int temp;
+			scanf("%d", &temp);
+			stack[base(stack, b, i.l) + i.a] = temp;
+			break;
+		case PRT:
+			printf("print:%d\n", stack[base(stack, b, i.l) + i.a]);
+			break;
+		case PT:
+			printf("%d\n", stack[top]);
+			//top--;
+			break;
 		case LIT:
 			stack[++top] = i.a;
 			break;
@@ -947,7 +1099,7 @@ void interpret() {
 			break;
 		case STO:
 			stack[base(stack, b, i.l) + i.a] = stack[top];
-			printf("%d\n", stack[top]);
+			printf("stacktop: %d\n", stack[top]);
 			top--;
 			break;
 		case CAL:
@@ -984,10 +1136,30 @@ void interpret() {
 	printf("End executing PL/0 program.\n");
 } // interpret
 
-  //////////////////////////////////////////////////////////////////////
+void printvar() {
+	int i;
+	i = position(id);
+	mask* mk;
+	mk = (mask*)&table[i];
+	gen(PRT, level - mk->level, mk->address);
+	getsym();
+}
+
+
+void inputvar() {
+	int i;
+	i = position(id);
+	mask* mk;
+	mk = (mask*)&table[i];
+	gen(SCA, level - mk->level, mk->address);
+	getsym();
+
+
+}
+//////////////////////////////////////////////////////////////////////
 void main() {
 	FILE* hbin;
-	char s[80] = "example.txt";
+	char s[80] = "input.txt";
 	int i;
 	symset set, set1, set2;
 
@@ -1000,11 +1172,11 @@ void main() {
 	}
 
 	phi = createset(SYM_NULL);
-	relset = createset(SYM_EQU, SYM_NEQ, SYM_LES, SYM_LEQ, SYM_GTR, SYM_GEQ, SYM_AND, SYM_NOT, SYM_OR, SYM_NULL);
+	relset = createset(SYM_EQU, SYM_NEQ, SYM_LES, SYM_LEQ, SYM_GTR, SYM_GEQ, SYM_NULL);
 
 	// create begin symbol sets
 	declbegsys = createset(SYM_CONST, SYM_VAR, SYM_PROCEDURE, SYM_NULL);
-	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_WHILE, SYM_NULL);
+	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_WHILE, SYM_FOR, SYM_NULL);
 	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN, SYM_NOT, SYM_NULL);
 
 	err = cc = cx = ll = 0; // initialize global variables
