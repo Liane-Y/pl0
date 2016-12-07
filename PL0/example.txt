@@ -13,7 +13,10 @@ begin
   
   i:=5;
   j:=10;
-
+  sca i;
   for i:=10;i>0;i:=i-1 do
+    begin
     j:=j+5;
+    print j*5;
+    end;
 end.

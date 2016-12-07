@@ -12,7 +12,12 @@
 //////////////////////////////////////////////////////////////////////
 // print error message.
 symset phi, declbegsys, statbegsys, facbegsys, relset;
-
+int cx_for_break = 0;
+//for exit
+int cx_for_exit = 0;
+//input and output
+void printvar();
+void inputvar();
 void error(int n) {
 	int i;
 
@@ -27,7 +32,7 @@ void error(int n) {
   //////////////////////////////////////////////////////////////////////
 void getch(void) {
 
-	// ¶ÁÈ¡µÄ×Ö·û±£´æÔÚchÖÐ
+	// ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½chï¿½ï¿½
 	if (cc == ll) {
 		if (feof(infile)) {
 			printf("\nPROGRAM INCOMPLETE\n");
@@ -82,8 +87,8 @@ void getch(void) {
 
   //////////////////////////////////////////////////////////////////////
   // gets a symbol from input stream.
-  // ×´Ì¬±»ÏÞ¶¨ÔÚÈ«¾Ö±äÁ¿ÖÐ
-  // symÖ¸Ê¾ÁËµ±Ç°symbolµÄÀàÐÍ£¬Èç¹ûÊÇ±êÊ¶·û£¬ÆäÖµÏÔÊ¾Ö¸¶¨
+  // ×´Ì¬ï¿½ï¿½ï¿½Þ¶ï¿½ï¿½ï¿½È«ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½
+  // symÖ¸Ê¾ï¿½Ëµï¿½Ç°symbolï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½Ê¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½Ê¾Ö¸ï¿½ï¿½
 void getsym(void) {
 	int i, k;
 	char a[MAXIDLEN + 1];
@@ -100,7 +105,7 @@ void getsym(void) {
 		} while (isalpha(ch) || isdigit(ch));
 		a[k] = 0;
 		strcpy(id, a);
-		word[0] = id;//word[0]±»ÓÃÀ´±£´æÏÖÔÚµÄid£¬Õ¼Î»
+		word[0] = id;//word[0]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½idï¿½ï¿½Õ¼Î»
 		i = NRW;
 		while (strcmp(id, word[i--]));
 		if (++i)
@@ -184,7 +189,7 @@ void getsym(void) {
 		csym[0] = ch;
 		while (csym[i--] != ch);
 		if (++i) {
-			sym = ssym[i]; //ÔËËã·û
+			sym = ssym[i]; //ï¿½ï¿½ï¿½ï¿½ï¿½
 			getch();
 		}
 		else {
@@ -253,7 +258,7 @@ void enter(int kind, int len = 1) {
 
   //////////////////////////////////////////////////////////////////////
   // locates identifier in symbol table.
-  // ½á¹ûÒÔÏÂ±êµÄÐÎÊ½¸ø³ö,Èç¹û·µ»Ø0,´ú±í·ûºÅ²»´æÔÚ
+  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â±ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å²ï¿½ï¿½ï¿½ï¿½ï¿½
 int position(char* id) {
 	int i;
 	strcpy(table[0].name, id);
@@ -313,7 +318,7 @@ void dimDeclaration(void) {
 }
 //////////////////////////////////////////////////////////////////////
 void vardeclaration(void) {
-	//todo:Ìí¼ÓÊý×éÉùÃ÷
+	//todo:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (sym == SYM_IDENTIFIER) {
 		getsym();
 		dimDeclaration();
@@ -469,7 +474,7 @@ void expression(symset fsys) {
 } // expression
 
 
-  //¹ØÏµ±í´ïÊ½
+  //ï¿½ï¿½Ïµï¿½ï¿½ï¿½Ê½
 void condition(symset fsys) {
 	int relop;
 	symset set;
@@ -589,16 +594,31 @@ void expr_condition(symset fsys) {
 
 
   //////////////////////////////////////////////////////////////////////
-  //Óï¾ä.
-  //Ò»¸öÓï¾äÎªÒÔÏÂÒ»ÖÖ:¸³ÖµÓï¾ä,Ìõ¼þÅÐ¶Ï,Ñ­»·»òÕßbegin end°üº¬µÄÓï¾ä¿é
+  //ï¿½ï¿½ï¿½.
+  //Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½:ï¿½ï¿½Öµï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½,Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½begin endï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void statement(symset fsys) {
 	int i, cx1, cx2;
 	symset set1, set;
 	int cx_for1,cx_for2,cx_for3;
 	int cx_jmp1, cx_jmp2;
 
-	if (sym == SYM_IDENTIFIER) { // variable assignment
-								 //¸³ÖµÓï¾äµÄÓÒÖµÓ¦¸ÃÊÇÒ»¸ö¿É¼ÆËãÖµµÄ±í´ïÊ½
+	if (sym == SYM_EXIT) {
+		getsym();
+		cx_for_exit = cx;
+
+		gen(JMP, 0, 0);
+
+	}
+	else if (sym == SYM_BREAK) {
+		getsym();
+		//cx_for_break=cx_for_break+2;
+		cx_for_break = cx;
+		gen(JMP, 0, 0);
+
+	}
+
+	else if (sym == SYM_IDENTIFIER) { // variable assignment
+								 //ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÖµÓ¦ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½É¼ï¿½ï¿½ï¿½Öµï¿½Ä±ï¿½ï¿½Ê½
 		mask* mk;
 		if (!(i = position(id))) {
 			error(11); // Undeclared identifier.
@@ -700,7 +720,7 @@ void statement(symset fsys) {
 	}
 	else if (sym == SYM_WHILE) { // while statement
 		
-		cx1 = cx;//CX1±£´æÁËwhileÌõ¼þ¾äÎ»ÖÃ
+		cx1 = cx;//CX1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½whileï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 		getsym();
 		set1 = createset(SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
@@ -708,7 +728,7 @@ void statement(symset fsys) {
 		destroyset(set1);
 		destroyset(set);
 		cx2 = cx;
-		gen(JPC, 0, 0);//CX2±£´æÁËJPCµØÖ·
+		gen(JPC, 0, 0);//CX2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½JPCï¿½ï¿½Ö·
 		if (sym == SYM_DO) {
 			getsym();
 		}
@@ -749,17 +769,48 @@ void statement(symset fsys) {
 		gen(JMP, 0, cx_jmp2);
 		code[cx_for3].a = cx;
 	}
+	else if (sym == SYM_PRINTF) {
+
+		symset ttt = uniteset(fsys, createset(SYM_COMMA, SYM_SEMICOLON, SYM_NULL));
+
+		do {
+			getsym();
+			expr_condition(ttt);
+			gen(PT, 0, 0);
+		} while (sym == SYM_COMMA);
+
+		if (sym == SYM_SEMICOLON) {
+			getsym();
+		}
+	}
+	//INPUT A,B,C
+	else if (sym == SYM_INPUT) { // constant declarations
+		getsym();
+		do {
+			inputvar();
+			while (sym == SYM_COMMA) {
+				getsym();
+				inputvar();
+			}
+			if (sym == SYM_SEMICOLON) {
+				//getsym();
+			}
+			else {
+				error(5); // Missing ',' or ';'.
+			}
+		} while (sym == SYM_IDENTIFIER);
+	}
+	//judge if exit
+	if (code[cx_for_exit].a == 0) {
+		code[cx_for_exit].a = cx;
+	}
 	test(fsys, phi, 19);
 
-	//todo:forÑ­»·ÊµÏÖ
+	//todo:forÑ­ï¿½ï¿½Êµï¿½ï¿½
 } // statement
 
   //////////////////////////////////////////////////////////////////////
 
-  //block´¦Àí³ÌÐòÌå£¬ÒÔconst,var,procedureºÍÓï¾ä(statement)×÷Îª¿ªÊ¼·ûºÅ
-  //ÆäÖÐconst,procedureµÄÉùÃ÷ÊÇµÝ¹éµÄ,¶øprocedures-> procedure ident ; ³ÌÐòÌå ; 
-  //¹ÊprocedureÖÐ»¹»áµ÷ÓÃblock,ÕâÐ©¶¨Òå»áÑ­»·µ½²»³öÏÖÕâÐ©·ûºÅ
-  //Ö®ºó½øÐÐÓï¾äµÄ´¦Àí,³ÌÐò×îºó½áÊø
 void block(symset fsys) {
 	int cx0; // initial code index
 	mask* mk;
@@ -903,6 +954,18 @@ void interpret() {
 		case LIT:
 			stack[++top] = i.a;
 			break;
+		case SCA:
+			int temp;
+			scanf("%d", &temp);
+			stack[base(stack, b, i.l) + i.a] = temp;
+			break;
+		case PRT:
+			printf("print:%d\n", stack[base(stack, b, i.l) + i.a]);
+			break;
+		case PT:
+			printf("%d\n", stack[top]);
+			//top--;
+			break;
 		case OPR:
 			switch (i.a) // operator
 			{
@@ -1018,7 +1081,26 @@ void interpret() {
 
 	printf("End executing PL/0 program.\n");
 } // interpret
+void printvar() {
+	int i;
+	i = position(id);
+	mask* mk;
+	mk = (mask*)&table[i];
+	gen(PRT, level - mk->level, mk->address);
+	getsym();
+}
 
+
+void inputvar() {
+	int i;
+	i = position(id);
+	mask* mk;
+	mk = (mask*)&table[i];
+	gen(SCA, level - mk->level, mk->address);
+	getsym();
+
+
+}
   //////////////////////////////////////////////////////////////////////
 void main() {
 	FILE* hbin;

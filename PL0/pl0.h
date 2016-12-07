@@ -2,7 +2,7 @@
 #define PL_H
 #include <stdio.h>
 
-#define NRW        15    // number of reserved words
+#define NRW        19    // number of reserved words
 #define TXMAX      500    // length of identifier table
 #define MAXNUMLEN  14     // maximum number of digits in numbers
 #define NSYM       10     // maximum number of symbols in array ssym and csym
@@ -54,7 +54,11 @@ enum symtype {
 	SYM_AND,
 	SYM_OR,
 	SYM_NOT,
-	SYM_FOR
+	SYM_FOR,
+	SYM_BREAK,
+	SYM_EXIT,
+	SYM_PRINTF,
+	SYM_INPUT
 };
 
 enum idtype {
@@ -65,26 +69,31 @@ enum opcode {
 	//将常数置于栈顶
 	LIT,
 	//算术或逻辑运算指令
-		OPR,
+	OPR,
 	//将变量值置于栈顶
-			LOD, 
-		//将栈顶的值赋予变量
-		STO,
-			//过程调用
-			CAL,
-				//在数据栈中分配存储空间
-				INT, 
-					JMP, 
-					JPC,
-						JC,
-							POP
+	LOD,
+	//将栈顶的值赋予变量
+	STO,
+	//过程调用
+	CAL,
+	//在数据栈中分配存储空间
+	INT,
+	JMP,
+	JPC,
+	JC,
+	POP,
+
+	PRT,
+	SCA,
+	PT
+
 };
 
 enum oprcode {
 	OPR_RET, OPR_NEG, OPR_ADD, OPR_MIN,
 	OPR_MUL, OPR_DIV, OPR_ODD, OPR_EQU,
 	OPR_NEQ, OPR_LES, OPR_LEQ, OPR_GTR,
-	OPR_GEQ, OPR_AND, OPR_OR,  OPR_NOT
+	OPR_GEQ, OPR_AND, OPR_OR, OPR_NOT
 };
 
 
@@ -150,17 +159,17 @@ char line[80];
 
 instruction code[CXMAX];
 //预留字，0为哨兵
-char* word[NRW + 1] =	
+char* word[NRW + 1] =
 {
 	"", /* place holder */
 	"begin", "call", "const", "do", "end","if",
-	"odd", "procedure", "then", "var", "while","else","[","]","for"
+	"odd", "procedure", "then", "var", "while","else","[","]","for","break","exit","print","input"
 };
 //与预留字对应的宏变量
 int wsym[NRW + 1] =
 {
 	SYM_NULL, SYM_BEGIN, SYM_CALL, SYM_CONST, SYM_DO, SYM_END,
-	SYM_IF, SYM_ODD, SYM_PROCEDURE, SYM_THEN, SYM_VAR, SYM_WHILE,SYM_ELSE,SYM_LSQUARE,SYM_RSQUARE,SYM_FOR
+	SYM_IF, SYM_ODD, SYM_PROCEDURE, SYM_THEN, SYM_VAR, SYM_WHILE,SYM_ELSE,SYM_LSQUARE,SYM_RSQUARE,SYM_FOR,SYM_BREAK,SYM_EXIT,SYM_PRINTF,SYM_INPUT
 };
 //与运算符对应的宏
 int ssym[NSYM + 1] =
@@ -174,10 +183,10 @@ char csym[NSYM + 1] =
 	' ', '+', '-', '*', '/', '(', ')', '=', ',', '.', ';'//'&','|','!'
 };
 
-#define MAXINS   10
+#define MAXINS   13
 char* mnemonic[MAXINS] =
 {
-	"LIT", "OPR", "LOD", "STO", "CAL", "INT", "JMP", "JPC","JC","POP"
+	"LIT", "OPR", "LOD", "STO", "CAL", "INT", "JMP", "JPC","JC","POP","PRT","SCA","PT"
 };
 
 //变量表,包含名字,类型和值
