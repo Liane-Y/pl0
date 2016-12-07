@@ -9,15 +9,14 @@
 #include "set.h"
 #include <iostream>
 
+//for debug
+int debug_1 = 0;
+
+
 //////////////////////////////////////////////////////////////////////
 // print error message.
 symset phi, declbegsys, statbegsys, facbegsys, relset;
-int cx_for_break = 0;
-//for exit
-int cx_for_exit = 0;
-//input and output
-void printvar();
-void inputvar();
+
 void error(int n) {
 	int i;
 
@@ -331,7 +330,6 @@ void vardeclaration(void) {
 } // vardeclaration
 
 
-
   //////////////////////////////////////////////////////////////////////
 void listcode(int from, int to) {
 	int i;
@@ -488,7 +486,7 @@ void condition(symset fsys) {
 		set = uniteset(relset, fsys);
 		expression(set);
 		destroyset(set);
-		if(inset(sym,relset)) {
+		if (inset(sym, relset)) {
 			relop = sym;
 			getsym();
 			expression(fsys);
@@ -519,7 +517,7 @@ void condition(symset fsys) {
 void expr_condition(symset fsys) {
 	int andop;
 	symset set;
-	int cx_jpc,cx_jmp;
+	int cx_jpc, cx_jmp;
 	set = uniteset(fsys, createset(SYM_AND, SYM_OR, SYM_NULL));
 	if (sym == SYM_AND || sym == SYM_OR) {
 		andop = sym;
@@ -528,7 +526,7 @@ void expr_condition(symset fsys) {
 			cx_jpc = cx;
 			gen(JPC, 0, 0);
 			gen(LIT, 0, 1);
-//			expression(set);
+			//			expression(set);
 			condition(set);
 			gen(OPR, 0, OPR_AND);
 			cx_jmp = cx;
@@ -550,7 +548,7 @@ void expr_condition(symset fsys) {
 			gen(LIT, 0, 1);
 			code[cx_jmp].a = cx;
 		}
-//		expression(set);
+		//		expression(set);
 	}
 	else {
 		//			expression(set);
@@ -564,7 +562,7 @@ void expr_condition(symset fsys) {
 		if (andop == SYM_AND) {
 			cx_jpc = cx;
 			gen(JPC, 0, 0);
-			gen(LIT, 0, 1);	
+			gen(LIT, 0, 1);
 			//			expression(set);
 			condition(set);
 			gen(OPR, 0, OPR_AND);
@@ -594,31 +592,17 @@ void expr_condition(symset fsys) {
 
 
   //////////////////////////////////////////////////////////////////////
-  //���.
-  //һ�����Ϊ����һ��:��ֵ���,�����ж�,ѭ������begin end����������
+  //语句.
+  //一个语句为以下一种:赋值语句,条件判断,循环或者begin end包含的语句块
 void statement(symset fsys) {
 	int i, cx1, cx2;
 	symset set1, set;
-	int cx_for1,cx_for2,cx_for3;
+	//int cx_for1;
+	int cx_for2, cx_for3;
 	int cx_jmp1, cx_jmp2;
 
-	if (sym == SYM_EXIT) {
-		getsym();
-		cx_for_exit = cx;
-
-		gen(JMP, 0, 0);
-
-	}
-	else if (sym == SYM_BREAK) {
-		getsym();
-		//cx_for_break=cx_for_break+2;
-		cx_for_break = cx;
-		gen(JMP, 0, 0);
-
-	}
-
-	else if (sym == SYM_IDENTIFIER) { // variable assignment
-								 //��ֵ������ֵӦ����һ���ɼ���ֵ�ı��ʽ
+	if (sym == SYM_IDENTIFIER) { // variable assignment
+								 //赋值语句的右值应该是一个可计算值的表达式
 		mask* mk;
 		if (!(i = position(id))) {
 			error(11); // Undeclared identifier.
@@ -720,7 +704,7 @@ void statement(symset fsys) {
 	}
 	else if (sym == SYM_WHILE) { // while statement
 		
-		cx1 = cx;//CX1������while������λ��
+		cx1 = cx;//CX1保存了while条件句位置
 		getsym();
 		set1 = createset(SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
@@ -737,24 +721,34 @@ void statement(symset fsys) {
 		}
 		statement(fsys);
 		gen(JMP, 0, cx1);
+		printf("%d2333333", cx);
+
 		code[cx2].a = cx;
+		//judge if break
+		if (code[cx_for_break].a == 0) {
+			code[cx_for_break].a = cx;
+		}
+		//judge if exit
+		if (code[cx_for_exit].a == 0) {
+			code[cx_for_exit].a = cx;
+		}
 	}
-	
-	else if (sym==SYM_FOR) {
+
+	else if (sym == SYM_FOR) {
 		getsym();
 		symset set_go = createset(SYM_SEMICOLON, SYM_NULL);
 		set = uniteset(set_go, fsys);
 		statement(set);
-		if (sym==SYM_SEMICOLON) {
+		if (sym == SYM_SEMICOLON) {
 			getsym();
 		}
 		cx_for2 = cx;
-	    expr_condition(set);
+		expr_condition(set);
 		cx_for3 = cx;
 		gen(JPC, 0, 0);
 		cx_jmp1 = cx;
 		gen(JMP, 0, 0);
-		if (sym==SYM_SEMICOLON) {
+		if (sym == SYM_SEMICOLON) {
 			getsym();
 		}
 		set = uniteset(createset(SYM_DO, SYM_NULL), fsys);
@@ -762,47 +756,36 @@ void statement(symset fsys) {
 		statement(set);
 		gen(JMP, 0, cx_for2);
 		code[cx_jmp1].a = cx;
-		if (sym==SYM_DO) {
+		if (sym == SYM_DO) {
 			getsym();
 		}
 		statement(fsys);
 		gen(JMP, 0, cx_jmp2);
-		code[cx_for3].a = cx;
-	}
-	else if (sym == SYM_PRINTF) {
-
-		symset ttt = uniteset(fsys, createset(SYM_COMMA, SYM_SEMICOLON, SYM_NULL));
-
-		do {
-			getsym();
-			expr_condition(ttt);
-			gen(PT, 0, 0);
-		} while (sym == SYM_COMMA);
-
-		if (sym == SYM_SEMICOLON) {
-			getsym();
+		//judge if break
+		if (code[cx_for_break].a == 0) {
+			code[cx_for_break].a = cx;
 		}
+		code[cx_for3].a = cx;
+
+		//judge if exit
+		if (code[cx_for_exit].a == 0) {
+			code[cx_for_exit].a = cx;
+		}
+
 	}
-	//INPUT A,B,C
-	else if (sym == SYM_INPUT) { // constant declarations
-		getsym();
-		do {
-			inputvar();
-			while (sym == SYM_COMMA) {
-				getsym();
-				inputvar();
-			}
-			if (sym == SYM_SEMICOLON) {
-				//getsym();
-			}
-			else {
-				error(5); // Missing ',' or ';'.
-			}
-		} while (sym == SYM_IDENTIFIER);
+	//printf
+	//PRINT A,B,E
+	/* if (sym == SYM_PRINTF) { // constant declarations
+	getsym();
+	do {
+	printvar();
+	while (sym == SYM_COMMA) {
+	getsym();
+	printvar();
 	}
-	//judge if exit
-	if (code[cx_for_exit].a == 0) {
-		code[cx_for_exit].a = cx;
+	if (sym == SYM_SEMICOLON) {
+	//getsym();
+
 	}
 	test(fsys, phi, 19);
 
@@ -951,6 +934,18 @@ void interpret() {
 	do {
 		i = code[pc++];
 		switch (i.f) {
+		case SCA:
+			int temp;
+			scanf("%d", &temp);
+			stack[base(stack, b, i.l) + i.a] = temp;
+			break;
+		case PRT:
+			printf("print:%d\n", stack[base(stack, b, i.l) + i.a]);
+			break;
+		case PT:
+			printf("%d\n", stack[top]);
+			//top--;
+			break;
 		case LIT:
 			stack[++top] = i.a;
 			break;
@@ -1045,7 +1040,7 @@ void interpret() {
 			break;
 		case STO:
 			stack[base(stack, b, i.l) + i.a] = stack[top];
-			printf("%d\n", stack[top]);
+			printf("stacktop: %d\n", stack[top]);
 			top--;
 			break;
 		case CAL:
@@ -1100,11 +1095,10 @@ void inputvar() {
 	getsym();
 
 
-}
   //////////////////////////////////////////////////////////////////////
 void main() {
 	FILE* hbin;
-	char s[80] = "example.txt";
+	char s[80] = "input.txt";
 	int i;
 	symset set, set1, set2;
 
@@ -1121,7 +1115,7 @@ void main() {
 
 	// create begin symbol sets
 	declbegsys = createset(SYM_CONST, SYM_VAR, SYM_PROCEDURE, SYM_NULL);
-	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_WHILE,SYM_FOR, SYM_NULL);
+	statbegsys = createset(SYM_BEGIN, SYM_CALL, SYM_IF, SYM_WHILE, SYM_FOR, SYM_NULL);
 	facbegsys = createset(SYM_IDENTIFIER, SYM_NUMBER, SYM_LPAREN, SYM_NOT, SYM_NULL);
 
 	err = cc = cx = ll = 0; // initialize global variables
