@@ -9,14 +9,15 @@
 #include "set.h"
 #include <iostream>
 
-//for debug
-int debug_1 = 0;
-
-
 //////////////////////////////////////////////////////////////////////
 // print error message.
 symset phi, declbegsys, statbegsys, facbegsys, relset;
-
+int cx_for_break = 0;
+//for exit
+int cx_for_exit = 0;
+//input and output
+void printvar();
+void inputvar();
 void error(int n) {
 	int i;
 
@@ -330,6 +331,7 @@ void vardeclaration(void) {
 } // vardeclaration
 
 
+
   //////////////////////////////////////////////////////////////////////
 void listcode(int from, int to) {
 	int i;
@@ -591,18 +593,32 @@ void expr_condition(symset fsys) {
 }
 
 
-  //////////////////////////////////////////////////////////////////////
-  //语句.
-  //一个语句为以下一种:赋值语句,条件判断,循环或者begin end包含的语句块
+//////////////////////////////////////////////////////////////////////
+//���.
+//һ�����Ϊ����һ��:��ֵ���,�����ж�,ѭ������begin end����������
 void statement(symset fsys) {
 	int i, cx1, cx2;
 	symset set1, set;
-	//int cx_for1;
-	int cx_for2, cx_for3;
+	int cx_for1, cx_for2, cx_for3;
 	int cx_jmp1, cx_jmp2;
 
-	if (sym == SYM_IDENTIFIER) { // variable assignment
-								 //赋值语句的右值应该是一个可计算值的表达式
+	if (sym == SYM_EXIT) {
+		getsym();
+		cx_for_exit = cx;
+
+		gen(JMP, 0, 0);
+
+	}
+	else if (sym == SYM_BREAK) {
+		getsym();
+		//cx_for_break=cx_for_break+2;
+		cx_for_break = cx;
+		gen(JMP, 0, 0);
+
+	}
+
+	else if (sym == SYM_IDENTIFIER) { // variable assignment
+									  //��ֵ������ֵӦ����һ���ɼ���ֵ�ı��ʽ
 		mask* mk;
 		if (!(i = position(id))) {
 			error(11); // Undeclared identifier.
@@ -703,8 +719,8 @@ void statement(symset fsys) {
 		}
 	}
 	else if (sym == SYM_WHILE) { // while statement
-		
-		cx1 = cx;//CX1保存了while条件句位置
+
+		cx1 = cx;//CX1������while������λ��
 		getsym();
 		set1 = createset(SYM_DO, SYM_NULL);
 		set = uniteset(set1, fsys);
@@ -721,17 +737,7 @@ void statement(symset fsys) {
 		}
 		statement(fsys);
 		gen(JMP, 0, cx1);
-		printf("%d2333333", cx);
-
 		code[cx2].a = cx;
-		//judge if break
-		if (code[cx_for_break].a == 0) {
-			code[cx_for_break].a = cx;
-		}
-		//judge if exit
-		if (code[cx_for_exit].a == 0) {
-			code[cx_for_exit].a = cx;
-		}
 	}
 
 	else if (sym == SYM_FOR) {
@@ -761,31 +767,42 @@ void statement(symset fsys) {
 		}
 		statement(fsys);
 		gen(JMP, 0, cx_jmp2);
-		//judge if break
-		if (code[cx_for_break].a == 0) {
-			code[cx_for_break].a = cx;
-		}
 		code[cx_for3].a = cx;
+	}
+	else if (sym == SYM_PRINTF) {
 
-		//judge if exit
-		if (code[cx_for_exit].a == 0) {
-			code[cx_for_exit].a = cx;
+		symset ttt = uniteset(fsys, createset(SYM_COMMA, SYM_SEMICOLON, SYM_NULL));
+
+		do {
+			getsym();
+			expr_condition(ttt);
+			gen(PT, 0, 0);
+		} while (sym == SYM_COMMA);
+
+		if (sym == SYM_SEMICOLON) {
+			getsym();
 		}
-
 	}
-	//printf
-	//PRINT A,B,E
-	/* if (sym == SYM_PRINTF) { // constant declarations
-	getsym();
-	do {
-	printvar();
-	while (sym == SYM_COMMA) {
-	getsym();
-	printvar();
+	//INPUT A,B,C
+	else if (sym == SYM_INPUT) { // constant declarations
+		getsym();
+		do {
+			inputvar();
+			while (sym == SYM_COMMA) {
+				getsym();
+				inputvar();
+			}
+			if (sym == SYM_SEMICOLON) {
+				//getsym();
+			}
+			else {
+				error(5); // Missing ',' or ';'.
+			}
+		} while (sym == SYM_IDENTIFIER);
 	}
-	if (sym == SYM_SEMICOLON) {
-	//getsym();
-
+	//judge if exit
+	if (code[cx_for_exit].a == 0) {
+		code[cx_for_exit].a = cx;
 	}
 	test(fsys, phi, 19);
 
@@ -934,18 +951,6 @@ void interpret() {
 	do {
 		i = code[pc++];
 		switch (i.f) {
-		case SCA:
-			int temp;
-			scanf("%d", &temp);
-			stack[base(stack, b, i.l) + i.a] = temp;
-			break;
-		case PRT:
-			printf("print:%d\n", stack[base(stack, b, i.l) + i.a]);
-			break;
-		case PT:
-			printf("%d\n", stack[top]);
-			//top--;
-			break;
 		case LIT:
 			stack[++top] = i.a;
 			break;
@@ -1040,7 +1045,7 @@ void interpret() {
 			break;
 		case STO:
 			stack[base(stack, b, i.l) + i.a] = stack[top];
-			printf("stacktop: %d\n", stack[top]);
+			printf("%d\n", stack[top]);
 			top--;
 			break;
 		case CAL:
@@ -1095,10 +1100,11 @@ void inputvar() {
 	getsym();
 
 
-  //////////////////////////////////////////////////////////////////////
+}
+//////////////////////////////////////////////////////////////////////
 void main() {
 	FILE* hbin;
-	char s[80] = "input.txt";
+	char s[80] = "example.txt";
 	int i;
 	symset set, set1, set2;
 
