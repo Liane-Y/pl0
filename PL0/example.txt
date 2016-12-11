@@ -2,21 +2,12 @@ var i,j;
 begin
   i := 1;
   j :=2;
-  if (1<0) && 1 then
-   begin
-   i:=i+1;
-   i:=i-1;
-   end;
-  else
-   i:=i-1;
+  if 0 && 1 then
+  begin
+    i:=i+1;
+    i:=i-1;
+  end
+  else 
+    i:=i+1;
   i:=i+1;
-  
-  i:=5;
-  j:=10;
-  sca i;
-  for i:=10;i>0;i:=i-1 do
-    begin
-    j:=j+5;
-    print j*5;
-    end;
 end.

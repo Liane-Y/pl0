@@ -679,12 +679,12 @@ void statement(symset fsys) {
 		}
 		cx1 = cx;
 		gen(JPC, 0, 0);
-		statement(fsys);
+		statement(uniteset(createset(SYM_ELSE,SYM_SEMICOLON),fsys));
 		int cx_jmp = cx;
 		gen(JMP, 0, 0);
-		if (sym == SYM_SEMICOLON) {
-			getsym();
-		}
+//		if (sym == SYM_SEMICOLON) {
+//			getsym();
+//		}
 		code[cx1].a = cx;
 
 		if (sym == SYM_ELSE) {
